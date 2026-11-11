@@ -66,3 +66,7 @@ Honest limits, also printed by the demo:
 - The camera cannot see box bottoms within ~3.8 m; tracks coast there for up to 0.5 s.
 
 All numbers come from synthetic scenarios with fixed seeds, not real footage.
+
+## Licence
+
+Apache-2.0 (see `LICENSE`). Chart.js in `web/static/vendor/` is MIT-licensed.
