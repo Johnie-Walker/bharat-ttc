@@ -1,8 +1,9 @@
 """Bharat-TTC judge dashboard: FastAPI backend serving the simulator and the static UI.
 
-Run from the Bharat-TTC folder:
+Run from the repo folder:
 
-    ..\\.venv\\Scripts\\python.exe -m uvicorn web.server:app --port 8000
+    .venv\\Scripts\\python.exe -m uvicorn web.server:app --port 8000    (Windows)
+    .venv/bin/python -m uvicorn web.server:app --port 8000             (macOS/Linux)
 
 then open http://127.0.0.1:8000
 """
@@ -22,7 +23,7 @@ from pydantic import BaseModel, Field
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from bharat_ttc import ActorClass, evidence  # noqa: E402
+from bharat_ttc import ActorClass, __version__, evidence  # noqa: E402
 from bharat_ttc.sim import (  # noqa: E402
     collision_course_cut_in,
     result_to_json,
@@ -84,7 +85,7 @@ async def lifespan(_: FastAPI):
     yield
 
 
-app = FastAPI(title="Bharat-TTC dashboard", version="0.3.0", lifespan=lifespan)
+app = FastAPI(title="Bharat-TTC dashboard", version=__version__, lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=STATIC), name="static")
 
 

@@ -6,6 +6,16 @@ lane-free calibration (B), class-specific CTRV unscented Kalman tracking (C),
 lane-based 1D-TTC baseline. Detection and ID association (stage A) and the
 near-miss map (Layer 2) are not here.
 
+![Bharat-TTC dashboard replaying the 48 km/h auto cut-in: the 2D engine warns at 1.93 s, the lane-based baseline at 3.20 s](docs/cut-in.gif)
+
+*Truck at 48 km/h, auto swinging 30° across its path. Bharat-TTC says "Auto, left!" at
+1.93 s while the auto is still outside the lane corridor; the lane-based baseline only
+beeps at 3.20 s. Synthetic scenario, fixed seed.*
+
+| Live demo | Evidence |
+|---|---|
+| ![Live demo tab: head-to-head alert strip, dashcam with no lane markings, top-down radar with sigma-point cones](docs/dashboard.png) | ![Evidence tab: hypothesis scorecard, lead time vs cut-in angle over 40 runs, crawl-jam and ablation results](docs/evidence.png) |
+
 | Module | What it does |
 |---|---|
 | `bharat_ttc/camera.py` | Lane-free calibration: robust fit (sklearn `HuberRegressor` / `RANSACRegressor`) of w/W_c = y_b/h − y_h/h over car (1.75 m) and auto (1.35 m) boxes. Pixel → ground `Z = fh/(y_b−y_h)`, `X = (x−c_x)h/(y_b−y_h)`, `σ_Z = Z²σ_y/(fh)` |
@@ -24,10 +34,13 @@ Agility priors: auto-rickshaw / rider σ_a = 2.6 m/s², σ_ψ̈ = 1.2 rad/s²; b
 
 ## Run
 
-Requires Python 3.10+. On Windows the quickest path is to double-click
-`run_dashboard.bat`: on first run it creates `.venv` and installs `requirements.txt`.
+Requires Python 3.10+.
 
-Manually (Windows; on macOS/Linux use `.venv/bin/python`):
+**Windows, one click:** double-click `run_dashboard.bat`. On first run it creates
+`.venv` inside the repo and installs `requirements.txt` (about 1–2 minutes), then
+opens the dashboard. The `.bat` launcher is Windows-only.
+
+**Manual, Windows:**
 
 ```
 python -m venv .venv
@@ -35,6 +48,16 @@ python -m venv .venv
 .venv\Scripts\python.exe -m pytest -q
 .venv\Scripts\python.exe demo_cut_in.py
 .venv\Scripts\python.exe -m uvicorn web.server:app --port 8000
+```
+
+**Manual, macOS / Linux:**
+
+```
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+.venv/bin/python -m pytest -q
+.venv/bin/python demo_cut_in.py
+.venv/bin/python -m uvicorn web.server:app --port 8000
 ```
 
 Open http://127.0.0.1:8000 and press
@@ -47,7 +70,9 @@ play/pause, Esc exits the tour.
 Truck at 48 km/h, auto at 20 km/h swinging 30° across its path (collision course):
 
 - Bharat-TTC voice cue "Auto, left!" at 1.93 s, 1.67 s before the conflict
-- 1D baseline beeps at 3.20 s, 0.40 s before the conflict → lead +1.27 s (~17 m at 48 km/h)
+- 1D baseline beeps at 3.20 s, 0.40 s before the conflict → lead +1.27 s, ~17 m more
+  braking room at 48 km/h (1.27 s × 13.3 m/s). Against the stricter corridor-entry
+  bound the lead is +1.20 s (~16 m).
 - Across 10–45° swings × 5 seeds, median lead over the earliest any corridor rule could
   fire (true corridor entry) is +1.17 s; below 15° it drops under 1 s
 - Parallel rider: TTC_2D = ∞ throughout; oncoming truck: no alert

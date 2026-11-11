@@ -113,3 +113,16 @@ def test_benchmark_reports_sane_numbers():
 def test_record_sample_fits_daily_budget():
     r = record_sample()
     assert r["records_per_mb_json"] >= 3000
+
+
+def test_version_numbers_agree():
+    import pathlib
+
+    import bharat_ttc
+
+    tomllib = pytest.importorskip("tomllib")  # Python 3.11+
+    from web.server import app
+
+    root = pathlib.Path(__file__).resolve().parent.parent
+    project = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))["project"]
+    assert bharat_ttc.__version__ == project["version"] == app.version

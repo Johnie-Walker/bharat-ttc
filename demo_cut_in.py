@@ -15,8 +15,10 @@ prints when each one fires.
 
 All numbers are from synthetic scenarios with fixed seeds, not real footage.
 
-    cd Bharat-TTC
-    ..\\.venv\\Scripts\\python.exe demo_cut_in.py
+From the repo folder:
+
+    .venv\\Scripts\\python.exe demo_cut_in.py     (Windows)
+    .venv/bin/python demo_cut_in.py             (macOS/Linux)
 """
 from __future__ import annotations
 
@@ -131,8 +133,14 @@ def hero_timeline() -> None:
           "before the auto is in the corridor)")
     if s.lead_gain is not None:
         print(f"  Lead vs tracked baseline   : +{s.lead_gain:.2f} s")
-    print(f"  At {spec.ego_speed_kmh:.0f} km/h that is ~{entry_gain * spec.ego_speed_kmh / 3.6:.0f} m more room "
-          "to brake.")
+    v = spec.ego_speed_kmh / 3.6
+    if s.lead_gain is not None:
+        print(f"  Braking room at {spec.ego_speed_kmh:.0f} km/h: ~{s.lead_gain * v:.0f} m more "
+              f"(the {s.lead_gain:.2f} s lead over the tracked baseline x {v:.1f} m/s);")
+        print(f"                              at least ~{entry_gain * v:.0f} m against the corridor-entry bound.")
+    else:
+        print(f"  Braking room at {spec.ego_speed_kmh:.0f} km/h: at least ~{entry_gain * v:.0f} m more "
+              "(corridor-entry bound).")
     print("\n  Other actors in the scene:")
     for aid in ("bike-1", "truck-1"):
         o = res.summaries[aid]

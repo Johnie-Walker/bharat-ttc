@@ -1,4 +1,5 @@
 """Bharat-TTC Layer 1: lane-free calibration, class-specific CTRV tracking and 2D conflict scoring."""
+__version__ = "0.3.0"  # keep in sync with pyproject.toml (checked by tests)
 from .camera import (
     CALIBRATION_WIDTH,
     VEHICLE_SIZE,

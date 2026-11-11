@@ -4,7 +4,8 @@ For whoever presents the prototype to the judges. Target length: about 3 minutes
 
 ## Before the session
 
-1. Double-click `run_dashboard.bat`. The browser opens at http://127.0.0.1:8000.
+1. Windows: double-click `run_dashboard.bat` (first run creates `.venv` and installs requirements, ~1–2 min).
+   macOS/Linux: follow the manual steps in the README. The browser opens at http://127.0.0.1:8000.
 2. Wait about 10 s after the server starts before opening **Evidence** (the server pre-computes 40+ runs).
 3. Turn the laptop volume up: the voice cue ("Auto, left!") is part of the demo.
 4. Plug in the charger. The server opts out of Windows power throttling, but on battery the CPU can still clock down and make the
@@ -20,7 +21,7 @@ from the running simulation, so they always match the screen.
 |---|---|---|---|
 | 1 | Dashcam, no lane markings | "Most systems need painted lanes. We calibrate the camera from the traffic itself: car and auto widths." | Innovation |
 | 2 | "Auto, left!" spoken; red cone hits the truck on the radar | "The auto is still 4–5 m to the side, outside the lane corridor. We already know it's coming." | Technical, UX |
-| 3 | Baseline beeps 1.27 s later | "Same detections, same tracker, only the risk logic differs. That's ~17 m of braking room at 48 km/h." | Technical |
+| 3 | Baseline beeps 1.27 s later | "Same detections, same tracker, only the risk logic differs. That's ~17 m more braking room at 48 km/h (1.27 s lead over the baseline × 13.3 m/s)." | Technical |
 | 4 | Jam: baseline beeps, Bharat-TTC silent | "This is why drivers switch warnings off. Our crawl gate knows bunching isn't a hazard." | Business (trust) |
 | 5 | Auto squeezes in, cue fires | "But a real sideways squeeze-in still gets through." | Functionality |
 | 6 | Evidence: 40-run sweep | "Not one cherry-picked clip. Median +1.17 s. Where it's weaker is on the chart too." | Technical |
@@ -45,5 +46,6 @@ from the running simulation, so they always match the screen.
 
 - **No voice:** the red banner still shows the cue. Some browsers need one click on the page first.
 - **Evidence says "computing":** wait a few seconds; it fills in automatically.
-- **Port 8000 busy:** run `..\.venv\Scripts\python.exe -m uvicorn web.server:app --port 8010`.
-- **Terminal-only backup:** `..\.venv\Scripts\python.exe demo_cut_in.py` prints the same timeline and evidence.
+- **Port 8000 busy:** run `.venv\Scripts\python.exe -m uvicorn web.server:app --port 8010` from the repo folder
+  (macOS/Linux: `.venv/bin/python -m uvicorn web.server:app --port 8010`).
+- **Terminal-only backup:** `.venv\Scripts\python.exe demo_cut_in.py` (macOS/Linux: `.venv/bin/python demo_cut_in.py`) prints the same timeline and evidence.

@@ -1,6 +1,6 @@
 [project]
 name = "bharat-ttc"
-version = "0.2.0"
+version = "0.3.0"
 description = "Bharat-TTC Layer 1: lane-free calibration, class-specific CTRV UKF tracking and 2D time-to-collision"
 requires-python = ">=3.10"
 dependencies = [
