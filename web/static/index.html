@@ -1,0 +1,265 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bharat-TTC Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/vendor/chart.umd.min.js"></script>
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <span class="logo">Bharat-TTC</span>
+      <span class="tag">Collision warning that works without lanes</span>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Dashboard sections">
+      <button class="tab-btn active" role="tab" data-tab="live" aria-selected="true">Live demo</button>
+      <button class="tab-btn" role="tab" data-tab="evidence" aria-selected="false">Evidence</button>
+      <button class="tab-btn" role="tab" data-tab="fleet" aria-selected="false">Fleet &amp; Layer 2</button>
+    </nav>
+    <button id="tour-start" class="btn primary tour-btn" type="button">★ Guided judge tour</button>
+  </header>
+
+  <div id="tab-live" class="tab-panel" role="tabpanel">
+  <div class="toolbar">
+    <div class="controls">
+      <label class="sr" for="scenario">Scenario</label>
+      <select id="scenario" aria-label="Scenario"></select>
+      <button id="play" class="btn primary" type="button">▶ Play</button>
+      <button id="restart" class="btn" type="button" title="Restart">⟲ Restart</button>
+      <select id="rate" aria-label="Playback speed">
+        <option value="0.25">0.25×</option>
+        <option value="0.5" selected>0.5×</option>
+        <option value="1">1×</option>
+      </select>
+      <label class="toggle"><input type="checkbox" id="voice" checked> Voice cue</label>
+      <label class="toggle"><input type="checkbox" id="beep" checked> Baseline beep</label>
+      <label class="toggle"><input type="checkbox" id="truth"> Show truth</label>
+    </div>
+  </div>
+
+  <section class="intro">
+    <div>
+      <h1 id="sc-title">Loading…</h1>
+      <p id="sc-desc"></p>
+    </div>
+    <div class="clock">
+      <div><span class="clock-label">t</span><span id="clock-t">0.00</span><span class="unit">s</span></div>
+      <div><span class="clock-label">ego</span><span id="clock-v">0</span><span class="unit">km/h</span></div>
+    </div>
+  </section>
+
+  <section class="card h2h" id="h2h" aria-label="Head-to-head alert comparison">
+    <div class="card-head">
+      <h2>Head-to-head: same detections, only the risk logic differs</h2>
+      <div class="kpis" id="kpis"></div>
+    </div>
+    <div class="lanes">
+      <div class="lane">
+        <div class="lane-label"><span class="swatch base"></span>1D lane-based baseline<small>TTC₁D &lt; 2 s in a fixed corridor</small></div>
+        <canvas id="lane-1d" height="56"></canvas>
+      </div>
+      <div class="lane">
+        <div class="lane-label"><span class="swatch bharat"></span>Bharat-TTC<small>TTC₂D + P<sub>conf</sub>, CTRV UKF</small></div>
+        <canvas id="lane-2d" height="56"></canvas>
+      </div>
+    </div>
+    <input type="range" id="scrub" min="0" max="1000" value="0" step="1" aria-label="Scrub time">
+    <div class="legend-row">
+      <span><i class="chip red"></i>alert active (2-of-3 debounced)</span>
+      <span><i class="chip green"></i>quiet</span>
+      <span><i class="tick"></i>voice cue / beep</span>
+      <span><i class="dash"></i>auto enters the 1D corridor</span>
+    </div>
+  </section>
+
+  <main class="views">
+    <div class="card view">
+      <div class="card-head">
+        <h2>Dashcam</h2>
+        <span class="hint">No lane markings. Boxes as the detector sees them; range from lane-free calibration.</span>
+      </div>
+      <div class="canvas-wrap cam">
+        <canvas id="dashcam" width="1280" height="720"></canvas>
+        <div id="banner" class="banner" role="status" aria-live="assertive"></div>
+      </div>
+    </div>
+    <div class="card view">
+      <div class="card-head">
+        <h2>Top-down radar</h2>
+        <span class="hint">2.5 s sigma-point futures relative to the ego: wide cones for autos, narrow for trucks.</span>
+      </div>
+      <div class="canvas-wrap radar"><canvas id="radar" width="640" height="720"></canvas></div>
+    </div>
+  </main>
+
+  <section class="charts">
+    <div class="card">
+      <div class="card-head">
+        <h2>Time to collision</h2>
+        <select id="chart-actor" aria-label="Actor for charts"></select>
+      </div>
+      <div class="chart-box"><canvas id="ttc-chart"></canvas></div>
+      <p class="note">Gaps mean “no collision course” (TTC = ∞). Dashed lines are the alert thresholds.</p>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Conflict probability P<sub>conf</sub></h2></div>
+      <div class="chart-box"><canvas id="pconf-chart"></canvas></div>
+      <p class="note">Weight of sigma-point futures that come within R of the ego over 2.5 s.</p>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Lane-free calibration</h2></div>
+      <div class="chart-box"><canvas id="calib-chart"></canvas></div>
+      <p class="note" id="calib-stats"></p>
+    </div>
+  </section>
+
+  <section class="bottom">
+    <form class="card custom" id="custom-form">
+      <div class="card-head"><h2>Try your own cut-in</h2></div>
+      <label>Swing angle <output id="o-swing">30°</output>
+        <input type="range" name="swing_deg" min="5" max="50" value="30" step="1"></label>
+      <label>Truck speed <output id="o-ego">48 km/h</output>
+        <input type="range" name="ego_kmh" min="20" max="80" value="48" step="1"></label>
+      <label>Auto speed <output id="o-auto">20 km/h</output>
+        <input type="range" name="auto_kmh" min="8" max="45" value="20" step="1"></label>
+      <div class="row">
+        <label>Agility prior
+          <select name="tracked_as">
+            <option value="auto_rickshaw">auto-rickshaw (σa 2.6, σψ̈ 1.2)</option>
+            <option value="truck">truck (σa 1.2, σψ̈ 0.25)</option>
+          </select>
+        </label>
+        <label>Noise seed <input type="number" name="seed" value="7" min="0" max="9999"></label>
+      </div>
+      <label class="toggle"><input type="checkbox" name="use_crawl_gate" checked> Crawl gate</label>
+      <button class="btn primary" type="submit" id="run-custom">Run simulation</button>
+      <p class="note" id="custom-status"></p>
+    </form>
+    <div class="card">
+      <div class="card-head"><h2>Alert log</h2></div>
+      <ol class="events" id="events"></ol>
+    </div>
+  </section>
+  </div><!-- /tab-live -->
+
+  <div id="tab-evidence" class="tab-panel" role="tabpanel" hidden>
+    <section class="intro">
+      <div>
+        <h1>Does it hold up beyond one clip?</h1>
+        <p>Every number here is recomputed by the server from the same pipeline the live demo runs:
+          bounding boxes, lane-free calibration, UKF, both risk rules. Scenarios are synthetic with fixed seeds.</p>
+      </div>
+    </section>
+    <div id="ev-loading" class="card note">Computing 40+ simulator runs on the server…</div>
+    <section class="card score-card">
+      <div class="card-head"><h2>Hypothesis scorecard (targets from the pitch deck)</h2></div>
+      <div class="table-wrap"><table class="score" id="scorecard"></table></div>
+    </section>
+    <section class="ev-grid">
+      <div class="card span2">
+        <div class="card-head">
+          <h2>H1 · Lead time vs cut-in angle</h2>
+          <span class="hint">40 collision-course cut-ins: 8 swing angles × 5 noise seeds, truck at 48 km/h</span>
+        </div>
+        <div class="chart-box tall"><canvas id="sweep-chart"></canvas></div>
+        <p class="note" id="sweep-note"></p>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>H2 · Crawling jam (12 s, under 15 km/h)</h2></div>
+        <div class="tiles" id="jam-tiles"></div>
+        <p class="note">Bunching behind a car is normal at crawl speed. The crawl gate (ego &lt; 18 km/h and
+          sideways speed &lt; 1.2 m/s) removes those cues but lets the sideways squeeze-in through.</p>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>Ablation · class-specific agility</h2></div>
+        <div class="tiles" id="abl-tiles"></div>
+        <p class="note" id="abl-note"></p>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>H3 proxy · Layer 1 compute</h2></div>
+        <div class="tiles" id="bench-tiles"></div>
+        <p class="note" id="bench-note"></p>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>Known limits (shown, not hidden)</h2></div>
+        <ul class="limits" id="limits"></ul>
+      </div>
+    </section>
+  </div><!-- /tab-evidence -->
+
+  <div id="tab-fleet" class="tab-panel" role="tabpanel" hidden>
+    <section class="intro">
+      <div>
+        <h1>From one truck’s warning to a near-miss map</h1>
+        <p>Layer 1 protects the driver on the device. Every alert also leaves the vehicle as a tiny record,
+          no video, so a fleet can see which road stretches are filling up with near-misses.</p>
+      </div>
+    </section>
+    <section class="ev-grid">
+      <div class="card span2">
+        <div class="card-head"><h2>Why fleets, why now</h2><span class="hint">Figures as cited in the pitch deck</span></div>
+        <div class="tiles four">
+          <div class="tile"><span class="tile-v">1,77,175</span><span class="tile-k">road deaths in India in 2024, from 4,87,707 accidents (MoRTH)</span></div>
+          <div class="tile"><span class="tile-v">44.8%</span><span class="tile-k">of 2023 deaths were two-wheeler riders, the largest victim group</span></div>
+          <div class="tile"><span class="tile-v">14%</span><span class="tile-k">fewer accidents with voice alerts on (Netradyne–IISc–Zoomcar pilot, ~1 lakh trips)</span></div>
+          <div class="tile"><span class="tile-v">2026</span><span class="tile-k">MoRTH lane-departure warning mandate for 8+ passenger commercial vehicles, on roads often without lanes</span></div>
+        </div>
+      </div>
+      <div class="card span2">
+        <div class="card-head">
+          <h2>Near-miss records from the current scenario</h2>
+          <span class="hint" id="rec-scn"></span>
+        </div>
+        <div id="records"></div>
+        <p class="note">Fields from the deck: H3 res-9 cell, time, speed, min TTC, deceleration, other actor’s class,
+          lighting; plus DRAC severity (closing speed ÷ TTC) and P<sub>conf</sub>. Pseudonymous device id; no video,
+          no plate or driver data. GPS position and clock are simulated.</p>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>Upload budget (H5: &lt; 1 MB per vehicle per day)</h2></div>
+        <label class="budget">Assumed alerts per vehicle per day <output id="o-alerts">200</output>
+          <input type="range" id="alerts-day" min="0" max="6000" step="50" value="200"></label>
+        <div class="bars" id="budget-bars"></div>
+        <p class="note">Your assumption, not a measurement: alert rates on real routes are still to be measured.</p>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>Layer 2 scoring (next step)</h2></div>
+        <p class="formula">λ̂<sub>h</sub> = (α + Σ<sub>k∈h</sub> w<sub>k</sub> s<sub>k</sub> e<sup>−λ(t<sub>now</sub>−t<sub>k</sub>)</sup>) ÷ (β + E<sub>h</sub>)</p>
+        <p class="note">Per H3 cell h: severity s<sub>k</sub> = the record’s DRAC, weighted up for vulnerable road users,
+          decayed over time, shrunk toward the city average by fleet exposure E<sub>h</sub>. Records above are in this
+          format; the map itself is not part of this prototype.</p>
+      </div>
+      <div class="card span2">
+        <div class="card-head"><h2>Path to deployment</h2><span class="hint">From the pitch deck</span></div>
+        <ol class="steps">
+          <li><b>Open release.</b> Apache-2.0 code and an ONNX INT8 detector on dashcams fleets already install.</li>
+          <li><b>4–6 week shadow mode</b> with a partner fleet: alerts logged, not spoken, to tune thresholds against a false-alert budget.</li>
+          <li><b>Driver-facing A/B pilot:</b> one short voice cue that names the side; measure alerts per hour, cut-in recall and near-miss maps.</li>
+        </ol>
+      </div>
+    </section>
+  </div><!-- /tab-fleet -->
+
+  <aside id="tour" class="tour" hidden role="dialog" aria-label="Guided tour" aria-live="polite">
+    <div class="tour-step" id="tour-step"></div>
+    <p id="tour-text"></p>
+    <div class="tour-actions">
+      <button id="tour-back" class="btn" type="button">Back</button>
+      <button id="tour-next" class="btn primary" type="button">Next ▸</button>
+      <button id="tour-exit" class="btn ghost" type="button">Exit tour</button>
+    </div>
+  </aside>
+
+  <footer>
+    Synthetic scenarios with fixed seeds, not real footage. Agility priors are starting values until
+    estimated on METEOR tracks. Calibration fitted from simulated car/auto boxes with 15% contamination.
+  </footer>
+
+  <script src="/static/app.js"></script>
+  <script src="/static/extras.js"></script>
+</body>
+</html>

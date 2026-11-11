@@ -1,0 +1,19 @@
+[project]
+name = "bharat-ttc"
+version = "0.2.0"
+description = "Bharat-TTC Layer 1: lane-free calibration, class-specific CTRV UKF tracking and 2D time-to-collision"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.26",
+    "filterpy>=1.4.5",
+    "scikit-learn>=1.4",
+    "h3>=4.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+web = ["fastapi>=0.110", "uvicorn>=0.27"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

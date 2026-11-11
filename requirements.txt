@@ -1,0 +1,9 @@
+# Bharat-TTC prototype. Versions tested on Python 3.13 (Windows 11).
+numpy>=1.26
+scipy>=1.11
+filterpy>=1.4.5        # tested with 2.0.0
+scikit-learn>=1.4      # tested with 1.9.1
+h3>=4.0                # tested with 4.5.0
+fastapi>=0.110         # tested with 0.139.2
+uvicorn>=0.27          # tested with 0.51.0
+pytest>=8              # tests only
