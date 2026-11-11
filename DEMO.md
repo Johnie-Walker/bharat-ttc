@@ -4,7 +4,7 @@ For whoever presents the prototype to the judges. Target length: about 3 minutes
 
 ## Before the session
 
-1. Windows: double-click `run_dashboard.bat` (first run creates `.venv` and installs requirements, ~1–2 min).
+1. Windows: double-click `run_dashboard.bat` (first run creates `.venv` and installs requirements: about 5 minutes and needs internet, so do it before the session, not in front of the judges).
    macOS/Linux: follow the manual steps in the README. The browser opens at http://127.0.0.1:8000.
 2. Wait about 10 s after the server starts before opening **Evidence** (the server pre-computes 40+ runs).
 3. Turn the laptop volume up: the voice cue ("Auto, left!") is part of the demo.

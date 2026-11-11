@@ -5,7 +5,7 @@ REM Uses .venv inside this folder and creates it on first run.
 cd /d "%~dp0"
 set "PY=.venv\Scripts\python.exe"
 if not exist "%PY%" (
-  echo First run: creating .venv and installing requirements, this takes 1-2 minutes...
+  echo First run: creating .venv and installing requirements, this takes about 5 minutes and needs internet...
   py -3 -m venv .venv 2>nul || python -m venv .venv || (echo Python 3.10+ is required: https://www.python.org/downloads/ & pause & exit /b 1)
   "%PY%" -m pip install --upgrade pip
   "%PY%" -m pip install -r requirements.txt || (echo Installing requirements failed. & pause & exit /b 1)

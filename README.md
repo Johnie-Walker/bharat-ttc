@@ -37,7 +37,7 @@ Agility priors: auto-rickshaw / rider σ_a = 2.6 m/s², σ_ψ̈ = 1.2 rad/s²; b
 Requires Python 3.10+.
 
 **Windows, one click:** double-click `run_dashboard.bat`. On first run it creates
-`.venv` inside the repo and installs `requirements.txt` (about 1–2 minutes), then
+`.venv` inside the repo and installs `requirements.txt` (about 5 minutes on first run, needs internet), then
 opens the dashboard. The `.bat` launcher is Windows-only.
 
 **Manual, Windows:**
